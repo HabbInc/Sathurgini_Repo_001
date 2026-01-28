@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   const [adminName, setAdminName] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -33,17 +35,26 @@ export default function AdminDashboard() {
 
       {/* Dashboard Cards */}
       <div className="flex flex-wrap gap-6 mt-4">
-        <div className="bg-white p-6 rounded-lg shadow-lg w-64 text-center">
+        <div
+          onClick={() => router.push("/admin/products/list")}
+          className="bg-white p-6 rounded-lg shadow-lg w-64 text-center cursor-pointer hover:bg-gray-100 transition"
+        >
           <h2 className="font-bold text-lg">Products</h2>
           <p>Manage all products</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg w-64 text-center">
+        <div
+          onClick={() => router.push("/admin/orders")}
+          className="bg-white p-6 rounded-lg shadow-lg w-64 text-center cursor-pointer hover:bg-gray-100 transition"
+        >
           <h2 className="font-bold text-lg">Orders</h2>
           <p>View and process orders</p>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg w-64 text-center">
+        <div
+          onClick={() => router.push("/admin/categories/list")}
+          className="bg-white p-6 rounded-lg shadow-lg w-64 text-center cursor-pointer hover:bg-gray-100 transition"
+        >
           <h2 className="font-bold text-lg">Categories</h2>
           <p>Manage product categories</p>
         </div>
