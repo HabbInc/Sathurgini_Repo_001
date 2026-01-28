@@ -10,7 +10,7 @@ export async function POST(req) {
 
     const { email, password } = await req.json();
 
-    // check email
+    // Check email
     const user = await User.findOne({ email });
     if (!user) {
       return NextResponse.json(
@@ -19,7 +19,7 @@ export async function POST(req) {
       );
     }
 
-    // compare password
+    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json(
@@ -27,8 +27,10 @@ export async function POST(req) {
         { status: 400 }
       );
     }
+  
 
-    // create token
+    
+    // Create JWT token
     const token = jwt.sign(
       {
         id: user._id,
@@ -38,13 +40,16 @@ export async function POST(req) {
       { expiresIn: "7d" }
     );
 
+    // Return token + user/admin data
     return NextResponse.json({
       message: "Login success",
       token,
       role: user.role,
+      
     });
 
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { message: "Login failed" },
       { status: 500 }

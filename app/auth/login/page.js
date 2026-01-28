@@ -12,17 +12,14 @@ export default function Login() {
   });
   const [error, setError] = useState("");
 
-  
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    
     if (!form.email || !form.password) {
       setError("Email and password are required.");
       return;
@@ -43,11 +40,12 @@ export default function Login() {
       const data = await res.json();
 
       if (data.token) {
-        
+        // Save token, role, and admin data in localStorage
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
+       
 
-        
+        // Redirect based on role
         if (data.role === "admin") {
           router.push("/admin");
         } else {
@@ -125,5 +123,5 @@ export default function Login() {
       </div>
     </div>
   );
+  
 }
-
