@@ -42,10 +42,17 @@ export default function AddProductPage() {
       formData.append("description", description);
       formData.append("image", imageFile);
 
-      const res = await fetch("/api/products", {
-        method: "POST",
-        body: formData,
-      });
+      const token = localStorage.getItem("token"); // matches what login saved
+
+
+const res = await fetch("/api/products", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`, // ✅ REQUIRED
+  },
+  body: formData,
+});
+
 
       if (!res.ok) {
         const errData = await res.json();

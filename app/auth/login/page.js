@@ -6,30 +6,31 @@ import Image from "next/image";
 
 export default function Login() {
   const router = useRouter();
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  // Handle input changes
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // Basic validation
     if (!form.email || !form.password) {
       setError("Email and password are required.");
       return;
     }
-
     if (!/\S+@\S+\.\S+/.test(form.email)) {
       setError("Invalid email address.");
       return;
     }
 
+    setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -39,50 +40,39 @@ export default function Login() {
 
       const data = await res.json();
 
-      if (data.token) {
-        // Save token, role, and admin data in localStorage
+      if (res.ok && data.token) {
+        // Save token and role
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.role);
-       
 
         // Redirect based on role
-        if (data.role === "admin") {
-          router.push("/admin");
-        } else {
-          router.push("/user");
-        }
+        if (data.role === "admin") router.push("/admin");
+        else router.push("/user");
       } else {
         setError(data.message || "Login failed");
       }
     } catch (err) {
-      setError("Something went wrong. Try again.");
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center">
       {/* Background Image */}
-      <Image
-        src="/back.jpg"
-        alt="Background"
-        fill
-        className="object-cover z-0"
-        priority
-      />
+      <Image src="/back.jpg" alt="Background" fill className="object-cover z-0" priority />
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/50 z-10 flex flex-col items-center justify-center px-4">
         <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md z-20">
-          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-            Login
-          </h1>
+          <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Login</h1>
 
-          {error && (
-            <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-center">
-              {error}
-            </div>
-          )}
+          {/* Error Message */}
+          {error && <div className="bg-red-100 text-red-700 p-2 rounded mb-4 text-center">{error}</div>}
 
+          {/* Login Form */}
           <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
             <input
               type="email"
@@ -104,9 +94,12 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+              disabled={loading}
+              className={`w-full py-2 rounded text-white transition ${
+                loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+              }`}
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 
@@ -123,5 +116,4 @@ export default function Login() {
       </div>
     </div>
   );
-  
 }
