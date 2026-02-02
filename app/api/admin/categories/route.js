@@ -1,12 +1,25 @@
 import connectDB from "@/lib/db";
-import Category from "@/models/Category"; // ✅ Correct model
+import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   await connectDB();
 
-  // Fetch all categories
-  const categories = await Category.find().select("name description createdAt");
+  const products = await Product.find()
+    .populate("adminId", "name email")
+    .select("name description price category adminId"); // ✅ ADD price
 
-  return NextResponse.json(categories);
+  const grouped = {};
+
+  products.forEach((product) => {
+    const category = product.category || "Others";
+
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+
+    grouped[category].push(product);
+  });
+
+  return NextResponse.json(grouped);
 }
