@@ -52,7 +52,15 @@ export default function AdminDashboard() {
         </div>
 
         <div
-          onClick={() => router.push("/admin/categories/list")}
+          onClick={() => router.push("/admin/usermanagement")}
+          className="bg-white p-6 rounded-lg shadow-lg w-64 text-center cursor-pointer hover:bg-gray-100 transition"
+        >
+          <h2 className="font-bold text-lg">User Management</h2>
+          <p>Manage users and permissions</p>
+        </div>
+
+        <div
+          onClick={() => router.push("/admin/categories")}
           className="bg-white p-6 rounded-lg shadow-lg w-64 text-center cursor-pointer hover:bg-gray-100 transition"
         >
           <h2 className="font-bold text-lg">Categories</h2>
