@@ -1,19 +1,24 @@
 import mongoose from "mongoose";
 
-const productSchema = new mongoose.Schema({
-  name: String,         // Changed from title -> name
-  price: Number,
-  description: String,
-  category: String,     // Add category field
-  image: String,
-  stock: {
-    type: Number,
-    default: 0
-  },
-  adminId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  }
-},{ timestamps: true });
+const commentSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  userName: String,
+  text: String,
+  rating: Number,
+  createdAt: { type: Date, default: Date.now }
+});
 
-export default mongoose.models.Product || mongoose.model("Product", productSchema);
+const productSchema = new mongoose.Schema({
+  name: String,
+  price: Number,
+  category: String,
+  description: String,
+  image: String,
+
+  adminId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
+  comments: [commentSchema]
+}, { timestamps: true });
+
+export default mongoose.models.Product ||
+  mongoose.model("Product", productSchema);

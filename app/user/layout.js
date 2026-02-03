@@ -1,83 +1,122 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function UserLayout({ children }) {
-  const [user, setUser] = useState(null);
-  const [open, setOpen] = useState(false);
   const router = useRouter();
+  const [showProfile, setShowProfile] = useState(false);
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    image: "/profile.png"
+  });
 
   useEffect(() => {
-    fetch("/api/user/me")
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch("/api/user/me", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then(res => res.json())
-      .then(data => setUser(data));
+      .then(data => setUser(data))
+      .catch(err => console.error(err));
   }, []);
 
-  const logout = async () => {
-    await fetch("/api/auth/logout");
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
     router.push("/");
   };
 
   return (
     <div
-      className="min-h-screen flex"
+      className="flex min-h-screen"
       style={{
         backgroundImage: "url('/back.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center"
       }}
     >
-      {/* Sidebar */}
-      <aside className="w-64 bg-black/70 text-white p-6">
-        <h2 className="text-xl font-bold mb-6">User Panel</h2>
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-black/80 text-white p-6 pt-10">
 
-        <nav className="space-y-4">
-          <Link href="/user/dashboard">Dashboard</Link>
-          <Link href="/user/products">Products</Link>
-          <Link href="/user/cart">Cart</Link>
-          <Link href="/user/orders">My Orders</Link>
-          <Link href="/user/profile">Profile</Link>
+        <h1 className="text-2xl font-bold">User Panel</h1>
+
+        <nav className="space-y-5 mt-10">
+
+          <button onClick={() => router.push("/user")} className="sidebar-btn">
+            Dashboard
+          </button>
+          <button onClick={() => router.push("/user/products")} className="sidebar-btn">
+            Products
+          </button>
+          <button onClick={() => router.push("/user/orders")} className="sidebar-btn">
+            Orders
+          </button>
+          <button onClick={() => router.push("/user/cart")} className="sidebar-btn">
+            Cart
+          </button>
         </nav>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 bg-white/90">
-        {/* Topbar */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h1 className="font-semibold">User Dashboard</h1>
+      {/* MAIN AREA */}
+      <div className="flex-1 flex flex-col">
+        {/* TOP BAR */}
+        <div className="flex justify-between items-center bg-white p-4 shadow-lg">
+          <h2 className="text-xl font-semibold">User Dashboard</h2>
 
-          {/* Profile dropdown */}
           <div className="relative">
-            <button
-              onClick={() => setOpen(!open)}
-              className="bg-gray-200 px-4 py-2 rounded"
-            >
-              {user?.name || "Profile"}
-            </button>
+            <img
+              src={user.image || "/profile.png"}
+              className="w-10 h-10 rounded-full cursor-pointer"
+              onClick={() => setShowProfile(!showProfile)}
+            />
 
-            {open && (
-              <div className="absolute right-0 mt-2 bg-white shadow rounded w-48 p-3">
-                <p className="font-semibold">{user?.name}</p>
-                <p className="text-sm text-gray-600">{user?.email}</p>
+            {showProfile && (
+              <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg p-4">
+                <div className="text-center">
+                  <img src={user.image} className="w-16 h-16 mx-auto rounded-full mb-2"/>
+                  <h3 className="font-bold">{user.name}</h3>
+                  <p className="text-sm text-gray-500">{user.email}</p>
+                </div>
 
-                <button
-                  onClick={logout}
-                  className="mt-3 text-red-600"
-                >
-                  Logout
-                </button>
+                <div className="mt-4">
+  <button
+    onClick={logout}
+    className="w-full py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+  >
+    Logout
+  </button>
+</div>
+
               </div>
             )}
           </div>
         </div>
 
-        {/* Page content */}
-        <div className="p-6">
-          {children}
-        </div>
-      </main>
+        {/* PAGE CONTENT */}
+        <main className="flex-1 p-6">{children}</main>
+      </div>
+
+      {/* SIDEBAR BUTTON STYLE */}
+      <style jsx>{`
+  .sidebar-btn {
+    width: 100%;
+    padding: 14px;
+    background: #1f2937;
+    border-radius: 10px;
+    text-align: left;
+    font-size: 15px;
+  }
+  .sidebar-btn:hover {
+    background: #374151;
+  }
+`}</style>
+
     </div>
   );
 }
