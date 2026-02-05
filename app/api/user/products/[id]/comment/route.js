@@ -1,5 +1,6 @@
-import connectDB from "@/lib/db"; // MongoDB connection helper
-import Product from "@/models/Product"; // Product model
+import connectDB from "@/lib/db";
+import Product from "@/models/Product";
+import { verifyToken } from "@/lib/auth";
 
 export async function POST(req, context) {
   try {
@@ -12,6 +13,10 @@ export async function POST(req, context) {
     const auth = req.headers.get("authorization");
     console.log("Authorization header:", auth);
     if (!auth) return new Response("Unauthorized", { status: 401 });
+
+    // 🔑 extract & verify token
+    const token = auth.split(" ")[1];
+    const user = verifyToken(token);
 
     // 3️⃣ Connect to DB
     await connectDB();
@@ -35,23 +40,33 @@ export async function POST(req, context) {
       product.comments = [];
     }
 
-    // 7️⃣ Push comment
+    // 7️⃣ Push comment (✅ FIXED FIELD NAMES)
     product.comments.push({
-      comment: text,      // text from frontend
-      points: rating,     // rating from frontend
-      user: auth,         // currently storing token; you can decode JWT for user ID
-      date: new Date(),
+      userId: user.id,
+      userName: user.name,
+      text: text,
+      rating: rating
     });
-    console.log("Comment to be saved:", product.comments[product.comments.length - 1]);
+
+    console.log(
+      "Comment to be saved:",
+      product.comments[product.comments.length - 1]
+    );
 
     // 8️⃣ Save product
     await product.save();
     console.log("Comment saved successfully");
 
-    return new Response(JSON.stringify({ message: "Comment added successfully" }), { status: 200 });
+    return new Response(
+      JSON.stringify({ message: "Comment added successfully" }),
+      { status: 200 }
+    );
 
   } catch (error) {
     console.error("Error in POST /comment:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500 }
+    );
   }
 }

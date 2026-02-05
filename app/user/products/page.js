@@ -13,30 +13,60 @@ export default function ProductsPage() {
       .then(setProducts);
   }, []);
 
+  // Add product to cart
+  const addToCart = (product) => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    const index = cart.findIndex(item => item._id === product._id);
+
+    if (index !== -1) {
+      cart[index].quantity += 1;
+    } else {
+      cart.push({
+        ...product,
+        price: Number(product.price),
+        quantity: 1
+      });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    alert("Added to cart");
+  };
+
   return (
     <div>
-      {/* Page Header */}
       <div className="bg-white p-6 rounded-lg shadow mb-6">
         <h2 className="text-2xl font-bold">Products</h2>
         <p className="text-gray-600 mt-1">Browse all products added by admins</p>
       </div>
 
-      {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {products.length > 0 ? (
           products.map((p) => (
             <div
               key={p._id}
-              onClick={() => router.push(`/user/products/${p._id}`)}
-              className="bg-white p-4 rounded-lg shadow cursor-pointer hover:shadow-xl"
+              className="bg-white p-4 rounded-lg shadow hover:shadow-xl flex flex-col"
             >
               <img
                 src={p.image || "/profile.png"}
-                className="h-40 w-full object-cover rounded"
+                className="h-40 w-full object-cover rounded cursor-pointer mb-2"
                 alt={p.name}
+                onClick={() => router.push(`/user/products/${p._id}`)}
               />
-              <h3 className="font-bold mt-2">{p.name}</h3>
-              <p className="text-gray-500">Rs. {p.price}</p>
+
+              <div className="flex justify-between items-center mt-2">
+                <div>
+                  <h3 className="font-bold">{p.name}</h3>
+                  <p className="text-gray-500">Rs. {p.price}</p>
+                </div>
+
+                <button
+                  onClick={() => addToCart(p)}
+                  className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                >
+                  Add to Cart
+                </button>
+              </div>
             </div>
           ))
         ) : (
