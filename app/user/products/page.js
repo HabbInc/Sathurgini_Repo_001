@@ -15,23 +15,27 @@ export default function ProductsPage() {
 
   // Add product to cart
   const addToCart = (product) => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-    const index = cart.findIndex(item => item._id === product._id);
+  const index = cart.findIndex(item => item._id === product._id);
 
-    if (index !== -1) {
-      cart[index].quantity += 1;
-    } else {
-      cart.push({
-        ...product,
-        price: Number(product.price),
-        quantity: 1
-      });
-    }
+  if (index !== -1) {
+    cart[index].quantity += 1;
+  } else {
+    cart.push({
+      ...product,
+      price: Number(product.price),
+      quantity: 1
+    });
+  }
 
-    localStorage.setItem("cart", JSON.stringify(cart));
-    alert("Added to cart");
-  };
+  localStorage.setItem("cart", JSON.stringify(cart));
+
+  // ✅ IMPORTANT: notify cart page
+  window.dispatchEvent(new Event("cartUpdated"));
+
+  alert("Added to cart");
+};
 
   return (
     <div>

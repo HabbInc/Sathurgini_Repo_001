@@ -31,20 +31,23 @@ export default function ProductDetails() {
   const index = cart.findIndex(item => item._id === product._id);
 
   if (index !== -1) {
-    // Product already in cart → increase quantity
     cart[index].quantity += 1;
   } else {
-    // New product
     cart.push({
       ...product,
-      price: Number(product.price), // ensure number
+      price: Number(product.price),
       quantity: 1
     });
   }
 
   localStorage.setItem("cart", JSON.stringify(cart));
+
+  // ✅ IMPORTANT: notify cart page
+  window.dispatchEvent(new Event("cartUpdated"));
+
   alert("Added to cart");
 };
+
 
 
   return (

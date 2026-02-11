@@ -1,57 +1,55 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const [cart, setCart] = useState([]);
+  const router = useRouter();
 
-  // Load cart on first mount
-  useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCart(savedCart);
-  }, []);
-
-  // ✅ ADDED: Sync cart when page gets focus
+  // Load cart initially + listen for updates
   useEffect(() => {
     const syncCart = () => {
       const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
       setCart(savedCart);
     };
 
-    window.addEventListener("focus", syncCart);
+    syncCart();
+    window.addEventListener("cartUpdated", syncCart);
 
     return () => {
-      window.removeEventListener("focus", syncCart);
+      window.removeEventListener("cartUpdated", syncCart);
     };
   }, []);
 
-  // Save cart whenever it changes
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
-
   const updateQuantity = (productId, qty) => {
     if (qty < 1) return;
+
     const updated = cart.map(p =>
       p._id === productId ? { ...p, quantity: qty } : p
     );
+
     setCart(updated);
+    localStorage.setItem("cart", JSON.stringify(updated));
   };
 
   const removeProduct = (productId) => {
     const updated = cart.filter(p => p._id !== productId);
     setCart(updated);
+    localStorage.setItem("cart", JSON.stringify(updated));
   };
 
   const subtotal = cart.reduce((sum, p) => sum + p.price * p.quantity, 0);
   const shippingFee = cart.length > 0 ? 499 : 0;
   const total = subtotal + shippingFee;
 
+  // ✅ ONLY FIX: redirect to checkout
   const buyNow = () => {
-    if (cart.length === 0) return alert("Your cart is empty!");
-    alert(`Order placed! Total: Rs. ${total}`);
-    localStorage.removeItem("cart");
-    setCart([]);
+    if (cart.length === 0) {
+      alert("Your cart is empty!");
+      return;
+    }
+    router.push("/user/checkout");
   };
 
   return (
@@ -61,25 +59,21 @@ export default function CartPage() {
       {cart.length === 0 ? (
         <p className="text-gray-500">Items added to cart will appear here.</p>
       ) : (
-        <div className="space-y-4">
+        <>
           {cart.map((p) => (
-            <div
-              key={p._id}
-              className="flex items-center justify-between border-b pb-4"
-            >
-              <div className="flex items-center gap-4">
+            <div key={p._id} className="flex justify-between border-b py-4">
+              <div className="flex gap-4">
                 <img
                   src={p.image || "/profile.png"}
-                  alt={p.name}
-                  className="w-20 h-20 object-cover rounded"
+                  className="w-20 h-20 rounded object-cover"
                 />
                 <div>
                   <h3 className="font-semibold">{p.name}</h3>
-                  <p>Price: Rs. {p.price}</p>
+                  <p>Rs. {p.price}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex gap-3 items-center">
                 <input
                   type="number"
                   min={1}
@@ -87,38 +81,35 @@ export default function CartPage() {
                   onChange={(e) =>
                     updateQuantity(p._id, Number(e.target.value))
                   }
-                  className="w-16 border rounded p-1 text-center"
+                  className="w-16 border p-1 text-center"
                 />
                 <button
                   onClick={() => removeProduct(p._id)}
-                  className="text-red-600 font-semibold"
+                  className="text-red-600"
                 >
                   Remove
                 </button>
               </div>
 
-              <div>
-                <p className="font-semibold">
-                  Rs. {p.price * p.quantity}
-                </p>
+              <div className="font-semibold">
+                Rs. {p.price * p.quantity}
               </div>
             </div>
           ))}
 
-          {/* SUMMARY */}
-          <div className="mt-6 border-t pt-4 space-y-2">
-            <p className="text-lg">Subtotal: Rs. {subtotal}</p>
-            <p className="text-lg">Shipping Fee: Rs. {shippingFee}</p>
-            <p className="text-xl font-bold">Total: Rs. {total}</p>
+          <div className="mt-6 space-y-2">
+            <p>Subtotal: Rs. {subtotal}</p>
+            <p>Shipping Fee: Rs. {shippingFee}</p>
+            <p className="font-bold text-lg">Total: Rs. {total}</p>
 
             <button
               onClick={buyNow}
-              className="mt-4 w-full bg-green-600 text-white py-3 rounded hover:bg-green-700"
+              className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700"
             >
               Buy Now
             </button>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
